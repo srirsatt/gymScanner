@@ -1,7 +1,9 @@
 # generation of the tensorflow model, to get exported to .tflite for use within react-native
 import os
 import tensorflow as tf 
-import numpy, pathlib, collections as np 
+import numpy as np 
+import pathlib as pathlib
+import collections as collections
 import matplotlib.pyplot as plt 
 import kagglehub
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
@@ -197,17 +199,25 @@ predictions = tf.argmax(predictions, axis=1).numpy()
 print("Predictions:\n", predictions)
 print("Labels (Real):\n", label_batch)
 
+'''
+# on img prediction
+SINGLE_IMG_SIZE = (224, 224)
+class_names = ['aerobic_steppers', 'bench_press', 'dumb_bell', 'elliptical', 'multi_machine', 'rowing_machine', 'treadmill']
+img_path = 'benchimg.jpeg'
+
+img = tf.keras.utils.load_img(img_path, target_size=SINGLE_IMG_SIZE)
+img_array = tf.keras.utils.img_to_array(img)
+
+img_array = np.expand_dims(img_array, axis=0)
+img_array = tf.keras.applications.mobilenet_v3.preprocess_input(img_array)
+
+predictions = model.predict(img_array)
+predicted_class = np.argmax(predictions[0])
+
+print("Prediction (class index):", predicted_class)
+print("Prediction (class name):", class_names[predicted_class])
 
 
-# print prediction diagram result 
-plt.figure(figsize=(12, 12))
-for i in range(9):
-    ax = plt.subplot(3, 3, i + 1)
-    plt.imshow(image_batch[i].astype("uint8"))
-    pred_label = class_names[predictions[i]]
-    true_label = class_names[label_batch[i]]
-    color = "green" if predictions[i] == label_batch[i] else "red"
-    plt.title(f"Pred: {pred_label}\nReal: {true_label}", color=color)
-    plt.axis("off")
 
 #plt.show()
+'''
