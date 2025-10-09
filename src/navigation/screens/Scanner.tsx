@@ -1,21 +1,22 @@
 import { Button, Text } from '@react-navigation/elements';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions, Camera, CameraMode } from 'expo-camera';
+import { CameraView, CameraType, useCameraPermissions, CameraMode } from 'expo-camera';
+import { useCameraPermission, useCameraDevice, Camera } from 'react-native-vision-camera';
 import { Image } from 'expo-image';
 import { useState, useRef } from 'react';
+import { loadTensorflowModel, useTensorflowModel } from 'react-native-fast-tflite';
 
 export function Scanner() {
-    const [facing, setFacing] = useState<CameraType>('back');
-    const [permission, requestPermission] = useCameraPermissions();
+    const device = useCameraDevice('back');
+    const { hasPermission, requestPermission } = useCameraPermission();
     const ref = useRef<CameraView>(null);
     const [uri, setUri] = useState<string | null>(null);
     const [ready, setReady] = useState<boolean>(false);
+    const plugin = useTensorflowModel(require('/Users/srirams/Developer/gymScanner/gymScanner/src/assets/model.tflite'))
+    const model = plugin.state === 'loaded' ? plugin.model : undefined
 
-    if (!permission) {
-        return <View /> // blank view
-    }
 
-    if (!permission.granted) {
+    if (!hasPermission) {
         // eventually replace this with an automatic screen, later move
         return (
             <View style={styles.permissionsPage}>
@@ -25,10 +26,16 @@ export function Scanner() {
         )
     }
 
+    if (device == null) {
+        return <View />
+    }
+
+    /*
     function toggleCameraDirection() {
         setFacing(current => (current === 'back' ? 'front' : 'back'));
     }
     
+    */
     const takePicture = async () => {
         if (!ready || !ref.current) return;
 
@@ -46,29 +53,7 @@ export function Scanner() {
     const uploadPhoto = async (uri: string) => {
         // post request to backend server
         console.log("Button Clicked!");
-
-        const formData = new FormData();
-        formData.append("file", {
-            uri,
-            name: 'photo.jpg',
-            type: 'image/jpeg',
-        } as any );
-
-        try {
-            const res = await fetch('https://b54afe7e6073.ngrok-free.app/classify', {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            const result = await res.json();
-            console.log("server response: ", result);
-
-        } catch (err) {
-            console.error("thing errored", err);
-        }
+        
     }
 
 
@@ -90,6 +75,15 @@ export function Scanner() {
 
     const renderCamera = () => {
         return (
+            <Camera 
+                style={StyleSheet.absoluteFill}
+                device={device}
+                isActive={true}
+            />
+        )
+
+        /*
+        return (
             <View style={styles.container}>
             <CameraView style={styles.camera} facing={facing} ref={ref} onCameraReady={() => setReady(true)} mode="picture"/>
             <View style={styles.buttonContainer}>
@@ -102,6 +96,7 @@ export function Scanner() {
             </View>
         </View>
         )
+        */
     }
 
     return (

@@ -10,14 +10,20 @@
     "scheme": "gymscanner",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.gymscanner"
+      "bundleIdentifier": "com.gymscanner",
+      "infoPlist": {
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.gymscanner"
+      "package": "com.gymscanner",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -31,7 +37,18 @@
           "backgroundColor": "#ffffff",
           "image": "./assets/splash-icon.png"
         }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera."
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9792995b-e864-4303-85f3-62d679471dcb"
+      }
+    }
   }
 }
