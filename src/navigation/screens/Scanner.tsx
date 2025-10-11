@@ -6,7 +6,8 @@ import { Image } from 'expo-image';
 import { useState, useRef } from 'react';
 import { loadTensorflowModel, useTensorflowModel } from 'react-native-fast-tflite';
 import * as ImageManipulator from 'expo-image-manipulator';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
+import { decode as decodeJpeg } from 'jpeg-js';
 
 
 export function Scanner() {
@@ -38,6 +39,26 @@ export function Scanner() {
     function toggleCameraDirection() {
         setFacing(current => (current === 'back' ? 'front' : 'back'));
     }
+
+    // manual function for base64 (NO LIBRARIES WORKING !!!)
+    function base64ToBytes(base64: string): Uint8Array {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        let str = base64.replace(/[\r\n=]/g, '');
+        let bytes = [];
+        for (let i = 0; i < str.length; i += 4) {
+            const c1 = chars.indexOf(str[i]);
+            const c2 = chars.indexOf(str[i + 1]);
+            const c3 = chars.indexOf(str[i + 2]);
+            const c4 = chars.indexOf(str[i + 3]);
+            const b1 = (c1 << 2) | (c2 >> 4);
+            const b2 = ((c2 & 15) << 4) | (c3 >> 2);
+            const b3 = ((c3 & 3) << 6) | c4;
+            bytes.push(b1);
+            if (c3 !== 64 && str[i + 2] !== '=') bytes.push(b2);
+            if (c4 !== 64 && str[i + 3] !== '=') bytes.push(b3);
+        }
+        return new Uint8Array(bytes);
+    }
     
     
     const takePicture = async () => {
@@ -57,6 +78,12 @@ export function Scanner() {
         // post request to backend server
         console.log("Button Clicked!");
 
+        if (!model) {
+            console.warn("Model wasn't loaded!");
+            return;
+        }
+
+
         try {
             const result = await ImageManipulator.manipulateAsync(
                 uri,
@@ -64,11 +91,41 @@ export function Scanner() {
                 { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
             );
             console.log("Resized img!", result.uri)
+
+            const file = new File(result.uri);
+            const bytes = await file.bytes();
+
+            const { data, width, height } = decodeJpeg(bytes, { useTArray: true });
+
+            const input = new Float32Array(width * height * 3);
+            for (let i = 0, j = 0; i < input.length; i += 3, j += 4) {
+                const r = data[j];
+                const g = data[j + 1];
+                const b = data[j + 2];
+                input[i]     = r;     // 0..255
+                input[i + 1] = g;     // 0..255
+                input[i + 2] = b;     // 0..255
+            }
+
+            const inputTensor = new Float32Array(1 * 224 * 224 * 3);
+            inputTensor.set(input);
+
+            const outputs = model.runSync
+            ? model.runSync([inputTensor])
+            : model.run([inputTensor]);
+
+            const probs = outputs[0] as Float32Array;
+            let bestIdx = 0, best = -Infinity;
+            for (let k = 0; k < probs.length; k++) if (probs[k] > best) { best = probs[k]; bestIdx = k; }
+            console.log(`Pred: ${bestIdx}  conf: ${(best*100).toFixed(2)}%`);
+
         } catch (e) {
             console.warn("Image manipulation failed:", e);
         }
+
+
         
-        
+
     }
 
 
