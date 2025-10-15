@@ -1,5 +1,4 @@
 import { StyleSheet, View, TouchableOpacity, Text, Button } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions, CameraMode } from 'expo-camera';
 import { useCameraPermission, useCameraDevice, Camera } from 'react-native-vision-camera';
 import { Image } from 'expo-image';
 import { useState, useRef } from 'react';
@@ -7,7 +6,7 @@ import { loadTensorflowModel, useTensorflowModel } from 'react-native-fast-tflit
 import * as ImageManipulator from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { decode as decodeJpeg } from 'jpeg-js';
-import { useTFLiteModel } from '../../App';
+import { useTFLiteModel } from '../../providers/ModelProvider';
 
 
 export function Scanner() {
