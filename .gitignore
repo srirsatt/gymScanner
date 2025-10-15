@@ -58,7 +58,6 @@ env/
 .idea/
 
 # ML artifacts
-*.tflite
 *.h5
 *.keras
 *.ckpt
