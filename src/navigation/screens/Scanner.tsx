@@ -1,4 +1,4 @@
-import { StyleSheet, View, TouchableOpacity, Text, Pressable } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Button } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, CameraMode } from 'expo-camera';
 import { useCameraPermission, useCameraDevice, Camera } from 'react-native-vision-camera';
 import { Image } from 'expo-image';
@@ -25,7 +25,7 @@ export function Scanner() {
         return (
             <View style={styles.permissionsPage}>
                 <Text>Please grant permission for camera access.</Text>
-                <Pressable onPress={requestPermission}>Grant Camera Access.</Pressable> 
+                <Button title="Grant Camera Access." onPress={requestPermission} />
             </View>
         )
     }
