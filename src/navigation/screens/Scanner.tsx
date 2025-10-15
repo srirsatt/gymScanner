@@ -7,6 +7,7 @@ import { loadTensorflowModel, useTensorflowModel } from 'react-native-fast-tflit
 import * as ImageManipulator from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { decode as decodeJpeg } from 'jpeg-js';
+import { useTFLiteModel } from '../../App';
 
 
 export function Scanner() {
@@ -16,8 +17,7 @@ export function Scanner() {
     const camera = useRef<Camera>(null);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
     const [ready, setReady] = useState<boolean>(false);
-    const plugin = useTensorflowModel(require('../../assets/model.tflite'));
-    const model = plugin.state === 'loaded' ? plugin.model : undefined
+    const { model, ready: modelReady } = useTFLiteModel();
 
 
     if (!hasPermission) {
@@ -79,7 +79,7 @@ export function Scanner() {
         // post request to backend server
         console.log("Button Clicked!");
 
-        if (!model) {
+        if (!model || !modelReady) {
             console.warn("Model wasn't loaded!");
             return;
         }
