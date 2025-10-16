@@ -20,6 +20,7 @@ SplashScreen.preventAutoHideAsync();
 
 // TFLITE -> model context
 
+
 const prefix = createURL('/');
 
 function AppInner() {
@@ -65,7 +66,7 @@ function AppInner() {
 export default function App() {
   return (
     <ModelProvider>
-      <AppInner />
+      <Navigation />
     </ModelProvider>
   );
 }

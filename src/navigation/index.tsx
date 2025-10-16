@@ -11,6 +11,8 @@ import scanner from '../assets/scanner.png';
 import { Home } from './screens/Home';
 import { Scanner } from './screens/Scanner';
 
+console.log('Scanner is', typeof Scanner); // should be 'function'
+
 const HomeTabs = createBottomTabNavigator({
 
   screens: {
