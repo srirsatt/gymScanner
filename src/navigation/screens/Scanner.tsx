@@ -2,7 +2,17 @@ import { StyleSheet, View, TouchableOpacity, Text, Pressable } from 'react-nativ
 import { useCameraPermission, useCameraDevice, Camera } from 'react-native-vision-camera';
 import { Image } from 'expo-image';
 import { useState, useRef } from 'react';
-import { loadTensorflowModel, useTensorflowModel } from 'react-native-fast-tflite';
+import { useTensorflowModel } from '../../providers/ModelProvider';
+// Local alias for TypedArray since the library doesn't export a type
+type TypedArray =
+  | Float32Array
+  | Int32Array
+  | Uint8Array
+  | Uint8ClampedArray
+  | Int8Array
+  | Uint16Array
+  | Int16Array
+  | Uint32Array;
 import * as ImageManipulator from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { decode as decodeJpeg } from 'jpeg-js';
@@ -15,8 +25,16 @@ export function Scanner() {
     const camera = useRef<Camera>(null);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
     const [ready, setReady] = useState<boolean>(false);
-    const plugin = useTensorflowModel(require('../../assets/model.tflite'));
-    const model = plugin.state === 'loaded' ? plugin.model : undefined
+    const { model, status, error } = useTensorflowModel();
+    if (status === 'loading') {
+        return <View><Text>Model Loading ...</Text></View>;
+    }
+    if (status === 'error') {
+        return <View><Text>Error loading model ... {error?.message}</Text></View>;
+    }
+    if (!model) {
+        return <View><Text>Model not loaded yet ...</Text></View>;
+    }
 
 
     if (!hasPermission) {
@@ -78,12 +96,6 @@ export function Scanner() {
         // post request to backend server
         console.log("Button Clicked!");
 
-        if (!model) {
-            console.warn("Model wasn't loaded!");
-            return;
-        }
-
-
         try {
             const result = await ImageManipulator.manipulateAsync(
                 uri,
@@ -110,14 +122,18 @@ export function Scanner() {
             const inputTensor = new Float32Array(1 * 224 * 224 * 3);
             inputTensor.set(input);
 
-            const outputs = model.runSync
-            ? model.runSync([inputTensor])
-            : model.run([inputTensor]);
+            let outputs: TypedArray[];
+            if (typeof (model as any).runSync === 'function') {
+                outputs = (model as any).runSync([inputTensor]) as TypedArray[];
+            } else {
+                outputs = await (model as any).run([inputTensor]);
+            }
 
             const probs = outputs[0] as Float32Array;
             let bestIdx = 0, best = -Infinity;
             for (let k = 0; k < probs.length; k++) if (probs[k] > best) { best = probs[k]; bestIdx = k; }
-            console.log(`Pred: ${bestIdx}  conf: ${(best*100).toFixed(2)}%`);
+            const predArray = ['aerobic_steppers', 'bench_press', 'dumb_bell', 'elliptical', 'multi_machine', 'rowing_machine', 'treadmill'];
+            console.log(`Pred: ${predArray[bestIdx]}  conf: ${(best*100).toFixed(2)}%`);
 
         } catch (e) {
             console.warn("Image manipulation failed:", e);
