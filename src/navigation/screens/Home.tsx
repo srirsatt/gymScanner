@@ -9,16 +9,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import '../../../global.css';
 import * as WebBrowser from 'expo-web-browser';
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 // Removed overlaying status bar shim; we will use safe area padding instead.
 
-
 export function Home() {
-  const scale = useSharedValue(1);
+  // Separate animated states so buttons don't sync
+  const scaleCard = useSharedValue(1);
+  const scaleFabLeft = useSharedValue(1);
+  const scaleFabRight = useSharedValue(1);
   const [result, setResult] = useState<WebBrowser.WebBrowserResult | null>(null);
 
-  const rStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const rCardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleCard.value }],
+  }));
+  const rFabLeftStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleFabLeft.value }],
+  }));
+  const rFabRightStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleFabRight.value }],
   }));
 
   const _handleButtonPressAsync = async () => {
@@ -26,12 +35,28 @@ export function Home() {
     setResult(result);
   }
 
-  const pressIn = () => {
-    scale.value = withTiming(0.95, { duration: 80, easing: Easing.out(Easing.quad) });
+  const pressInCard = () => {
+    scaleCard.value = withTiming(0.95, { duration: 80, easing: Easing.out(Easing.quad) });
   }
 
-  const pressOut = () => {
-    scale.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) });
+  const pressOutCard = () => {
+    scaleCard.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) });
+  }
+
+  const pressInFabLeft = () => {
+    scaleFabLeft.value = withTiming(0.95, { duration: 80, easing: Easing.out(Easing.quad) });
+  }
+
+  const pressOutFabLeft = () => {
+    scaleFabLeft.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) });
+  }
+
+  const pressInFabRight = () => {
+    scaleFabRight.value = withTiming(0.95, { duration: 80, easing: Easing.out(Easing.quad) });
+  }
+
+  const pressOutFabRight = () => {
+    scaleFabRight.value = withTiming(1, { duration: 100, easing: Easing.out(Easing.quad) });
   }
 
   const insets = useSafeAreaInsets();
@@ -52,24 +77,43 @@ export function Home() {
       >
         {/** AnimatedPressable to apply Reanimated scale style */}
         <AnimatedPressable 
-          style={rStyle}
+          style={rCardStyle}
           className="w-full h-20 bg-[#111111] rounded-2xl border border-[#262626] px-4 mt-4 flex-row items-center justify-between mb-4"
-          onPressIn={pressIn}
-          onPressOut={pressOut}
+          onPressIn={pressInCard}
+          onPressOut={pressOutCard}
           onPress={_handleButtonPressAsync}
         >
+          <Text className="text-[#BF5700] text-4xl">▶</Text>
           <View>
             <Text className="text-white pb-1 text-xl font-bold">Check-In QR Code</Text>
-            
             <Text className="text-neutral-400 text-xs">
               Use this code to check into all UT RecSports facilities.
             </Text>
-            
           </View>
-          <Text className="text-[#BF5700] text-2xl">▶</Text>
         </AnimatedPressable>
 
       </ScrollView>
+
+      <View className="absolute bottom-8 left-0 right-0 px-6 flex-row items-center justify-between">
+        <AnimatedPressable
+          className="w-20 h-20 rounded-full bg-[#BF5700] flex items-center justify-center relative"
+          style={rFabLeftStyle}
+          onPressIn={pressInFabLeft}
+          onPressOut={pressOutFabLeft}
+          onPress={_handleButtonPressAsync}
+        >
+          <Ionicons name="qr-code-outline" size={32} color="white" />
+        </AnimatedPressable>
+        <AnimatedPressable
+          className="w-20 h-20 rounded-full bg-[#BF5700] flex items-center justify-center"
+          style={rFabRightStyle}
+          onPressIn={pressInFabRight}
+          onPressOut={pressOutFabRight}
+          onPress={_handleButtonPressAsync}
+        >
+          <Ionicons name="barbell" size={36} color="white" />
+        </AnimatedPressable>
+      </View>
     </View>
   );
 }
