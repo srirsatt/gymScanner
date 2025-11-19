@@ -20,10 +20,22 @@ const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON;
 // file wide supabase declaration
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
+
 export async function getFacilities() {
   const { data, error } = await supabase
     .from('facilities')
     .select('name')
+    .order('name', { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getFacilitiesMinimal() {
+  const { data, error } = await supabase
+    .from('facilities')
+    .select('id, name, slug')
     .order('name', { ascending: true });
 
   if (error) throw error;
@@ -43,6 +55,19 @@ export async function getLatestHoursForFacility(facilityId: string) {
   return data;
 }
 
+export async function getLatestHoursForAllFacilities() {
+  const { data, error } = await supabase
+    .from('facility_hours')
+    .select('*')
+    .order('scraped_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+};
+
+
 export function Home() {
   // Separate animated states so buttons don't sync
   const scaleCard = useSharedValue(1);
@@ -50,6 +75,7 @@ export function Home() {
   const scaleFabRight = useSharedValue(1);
   const navigation = useNavigation();
   const [result, setResult] = useState<WebBrowser.WebBrowserResult | null>(null);
+
 
   getFacilities().then(f => console.log(f)).catch(console.error);
   getLatestHoursForFacility('9a4c77cc-a882-4b53-8022-bb3c914071fa').then(h => console.log(h)).catch(console.error);
