@@ -184,6 +184,7 @@ export function Home() {
 
     const handlePressIn = () => {
       scale.value = withTiming(0.95, { duration: 80, easing: Easing.out(Easing.quad) });
+      Haptics.selectionAsync();
     }
 
     const handlePressOut = () => {
