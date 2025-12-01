@@ -9,7 +9,7 @@
     "newArchEnabled": true,
     "scheme": "gymscanner",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.gymscanner",
       "infoPlist": {
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
